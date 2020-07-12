@@ -1,0 +1,4 @@
+.idea
+tmp
+.pytest_cache
+.venv
