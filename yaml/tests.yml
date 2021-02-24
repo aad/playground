@@ -1,0 +1,122 @@
+top:
+  l1: &a_l1
+    const_l1: vis_to_uppper
+    l1_o: only_visible_in_l1
+  l2: &a_l2
+    <<: *a_l1
+    const_l2: vis_to_uppper
+    l1_o: only_visible_in_l2
+    l2_o: only_visible_in_l2
+    l2_o_a:
+      - only_visible_in_l2_1
+      - only_visible_in_l2_2
+      - only_visible_in_l2_3
+  l3: &a_l3
+    <<: *a_l2
+    const_l3: vis_to_uppper
+    l1_o: only_visible_in_l3_n_l4
+    l2_o: only_visible_in_l3_n_l4
+    l3_o: only_visible_in_l3_n_l4
+    l2_o_a:
+      - only_visible_in_l3_n_l4
+      - only_visible_in_l3_n_l4
+      - only_visible_in_l3_n_l4
+      - only_visible_in_l3_n_l4
+  l4:
+    const_l3: invisible
+    <<: [*a_l2, *a_l3]
+  uppper:
+    const_l3: invisible
+    <<: [*a_l2, *a_l3]
+    uppper: only_visible_in_uppper
+    l1_o: only_visible_in_uppper
+    l2_o: only_visible_in_uppper
+    l3_o: only_visible_in_uppper
+    l2_o_a:
+      - only_visible_in_uppper
+      - only_visible_in_uppper
+      - only_visible_in_uppper
+      - only_visible_in_uppper
+      - only_visible_in_uppper
+
+
+## versions
+#
+# yq3 --version
+# yq version 3.2.1
+# yq4 --version
+# yq version 4.6.0
+#
+# https://github.com/kislyuk/yq
+# mv ${HOME}/.pyenv/versions/3.9.0/bin/yq ${HOME}/.pyenv/versions/3.9.0/bin/py-yq
+# mv ${HOME}/.pyenv/shims/yq ${HOME}/.pyenv/shims/py-yq
+# py-yq --version
+# yq 2.12.0
+#
+# https://github.com/homeport/dyff
+# dyff version
+# dyff version 1.2.2
+
+
+## diff cmd
+# diff <(yq4 e 'explode(.)' tests.yml | yq4 e 'sortKeys(..)' -) <(py-yq -y . tests.yml | yq4 e 'sortKeys(..)' -)
+# diff <(yq4 e 'explode(.)' tests.yml | yq4 e 'sortKeys(..)' -) <(yq3 r tests.yml -X | yq4 e 'sortKeys(..)' -)
+
+
+## dyff
+# dyff between <(yq4 e 'explode(.)' tests.yml | yq4 e 'sortKeys(..)' -) <(py-yq -y . tests.yml | yq4 e 'sortKeys(..)' -)
+#      _        __  __
+#    _| |_   _ / _|/ _|  between /dev/fd/63
+#  / _' | | | | |_| |_       and /dev/fd/62
+# | (_| | |_| |  _|  _|
+#  \__,_|\__, |_| |_|   returned five differences
+#         |___/
+
+# top.l4.const_l3
+#   ± value change
+#     - vis_to_uppper
+#     + invisible
+
+# top.l4.l1_o
+#   ± value change
+#     - only_visible_in_l3_n_l4
+#     + only_visible_in_l2
+
+# top.l4.l2_o
+#   ± value change
+#     - only_visible_in_l3_n_l4
+#     + only_visible_in_l2
+
+# top.l4.l2_o_a
+#   - four list entries removed:     + three list entries added:
+#     - only_visible_in_l3_n_l4        - only_visible_in_l2_1
+#     - only_visible_in_l3_n_l4        - only_visible_in_l2_2
+#     - only_visible_in_l3_n_l4        - only_visible_in_l2_3
+#     - only_visible_in_l3_n_l4
+
+# top.uppper.const_l3
+#   ± value change
+#     - vis_to_uppper
+#     + invisible
+
+# dyff between <(yq4 e 'explode(.)' tests.yml | yq4 e 'sortKeys(..)' -) <(yq3 r tests.yml -X | yq4 e 'sortKeys(..)' -)
+#      _        __  __
+#    _| |_   _ / _|/ _|  between /dev/fd/63
+#  / _' | | | | |_| |_       and /dev/fd/62
+# | (_| | |_| |  _|  _|
+#  \__,_|\__, |_| |_|   returned two differences
+#         |___/
+
+# top.l4.const_l3
+#   ± value change
+#     - vis_to_uppper
+#     + invisible
+
+# top.uppper.const_l3
+#   ± value change
+#     - vis_to_uppper
+#     + invisible
+
+## summary
+# py-yq has issue with Merge Key (l4.l1_o, l4.l2_o, l4.l2_o_a)
+# both yq3 and py-yq have issue with overriding keys before the Alias/Merge Key (l4.const_l3, upper.const_l3)
